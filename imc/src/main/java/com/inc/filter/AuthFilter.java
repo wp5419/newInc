@@ -15,6 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.log4j.Log4j;
 
+import com.inc.context.Context;
+import com.inc.model.User;
+
 @Log4j
 public class AuthFilter implements Filter{
 
@@ -33,11 +36,31 @@ public class AuthFilter implements Filter{
 	@Override
 	public void doFilter(ServletRequest arg0, ServletResponse arg1,
 			FilterChain arg2) throws IOException, ServletException {
-		log.info("进入系统过滤器");
+		
 		HttpServletRequest request = (HttpServletRequest) arg0;
 		HttpServletResponse response = (HttpServletResponse) arg1;
-		String url = request.getServletPath();
-		System.out.println(url);
+		User user1 = Context.userContext.get();
+		//如果是登录则直接走登录接口
+		if("/login/go".equals(request.getServletPath())){
+			arg2.doFilter(request, response);
+			return;
+		}
+		/**
+		 *  如果当前会话session过期，或者用户非正常退出时，通过session监听时间来在对userContext进行操作
+		 */
+		User user = Context.userContext.get();
+		
+		if(user != null){
+			arg2.doFilter(request, response);
+		}
+		else{
+			//跳转登录页面
+		}
+		
+		log.info("进入系统过滤器");
+	
+		/*ApplicationContext cxt = WebApplicationContextUtils.getWebApplicationContext(context);
+		UserService service = (UserService) cxt.getBean("userService");*/
 		
 		
 		Cookie[] cookies = request.getCookies();
